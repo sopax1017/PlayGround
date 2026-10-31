@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1" />
+  <meta name="theme-color" content="#070a0a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="HUNTED: NIGHT SHIFT — a touch-first stealth action thriller. Survive the kill floor, take down the lieutenants, and reach the van." />
+  <title>HUNTED // NIGHT SHIFT</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070a0a'/%3E%3Cpath d='M14 15h10v13h16V15h10v35H40V36H24v14H14z' fill='%23e7b269'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" aria-label="Hunted game world"></canvas>
+
+    <div id="vignette" aria-hidden="true"></div>
+    <div id="grain" aria-hidden="true"></div>
+    <div id="scanlines" aria-hidden="true"></div>
+    <div id="damage-flash" aria-hidden="true"></div>
+    <div id="execute-flash" aria-hidden="true"></div>
+
+    <!-- ───────────────────────── TITLE ───────────────────────── -->
+    <section id="title-screen" class="screen">
+      <div class="title-topbar">
+        <div class="brand-lockup">
+          <span class="brand-mark">H</span>
+          <span class="brand-copy">A NIGHT SHIFT PRODUCTION</span>
+        </div>
+        <div class="title-utility">
+          <button id="title-tilt" class="utility-btn" type="button" aria-pressed="false">
+            <span class="utility-dot"></span><span class="utility-label">TILT OFF</span>
+          </button>
+          <button id="title-audio" class="utility-btn" type="button" aria-pressed="true">
+            <span class="utility-dot"></span><span class="utility-label">SOUND ON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="title-main">
+        <div class="eyebrow"><span class="eyebrow-line"></span> STEALTH ACTION / SURVIVAL</div>
+        <h1 class="game-title" aria-label="Hunted">
+          <span>HUNT</span><span class="title-red">ED</span>
+        </h1>
+        <div class="title-rule">
+          <span class="rule-slash"></span>
+          <span class="title-sub">NIGHT SHIFT</span>
+          <span class="rule-slash"></span>
+        </div>
+        <p class="tagline">They hunted the wrong man.</p>
+        <p class="title-copy">
+          The kill floor is quiet. The doors are locked. Three lieutenants stand between you and the extraction van.
+          Stay in the dark. Take them from behind. Do not let them hear you coming.
+        </p>
+
+        <div class="title-actions">
+          <button id="start-btn" class="start-btn" type="button" aria-label="START">
+            <span class="start-btn-kicker">MISSION 01</span>
+            <span class="start-btn-label">START</span>
+            <span class="start-btn-arrow" aria-hidden="true">→</span>
+          </button>
+          <div class="start-aside">
+            <span>TOUCH / TILT READY</span>
+            <span>HEADPHONES RECOMMENDED</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="title-footer">
+        <div class="content-badge">M</div>
+        <div class="footer-copy">
+          <span>MATURE THEMES · STYLIZED VIOLENCE</span>
+          <span class="footer-dim">A fictional stealth thriller. Not affiliated with any existing game franchise.</span>
+        </div>
+        <div class="footer-controls">
+          <span><b>WASD</b> MOVE</span>
+          <span><b>SHIFT</b> SPRINT</span>
+          <span><b>C</b> CROUCH</span>
+          <span><b>SPACE</b> STRIKE</span>
+        </div>
+      </div>
+
+      <div class="hazard-strip" aria-hidden="true"></div>
+    </section>
+
+    <!-- ───────────────────────── HUD ───────────────────────── -->
+    <section id="hud" class="screen hidden" aria-hidden="true">
+      <div class="hud-top">
+        <div class="mission-card">
+          <div class="mission-kicker"><span class="live-dot"></span> MISSION 01 <span class="mission-code">/ KILL FLOOR</span></div>
+          <div id="objective-main" class="objective-main"><span id="objective-text">ELIMINATE THE LIEUTENANTS</span> <b id="obj-count">0 / 3</b></div>
+          <div id="objective-sub" class="objective-sub">THEN REACH THE EXTRACTION VAN</div>
+          <div class="mission-meta">
+            <span id="weapon-label">WEAPON / FISTS</span>
+            <span id="timer-label">00:00</span>
+          </div>
+        </div>
+
+        <div class="status-center">
+          <div id="threat-label" class="threat-label hidden-state"><span class="threat-pip"></span><span id="threat-text">UNDETECTED</span></div>
+          <div id="conceal-label" class="conceal-label">IN SHADOW</div>
+        </div>
+
+        <div class="map-cluster">
+          <div class="minimap-frame">
+            <canvas id="minimap" width="240" height="160" aria-label="Tactical map"></canvas>
+            <div class="minimap-corner tl"></div><div class="minimap-corner tr"></div>
+            <div class="minimap-corner bl"></div><div class="minimap-corner br"></div>
+            <span class="map-label">TACTICAL</span>
+          </div>
+          <div class="hunter-count"><span>HUNTERS</span><b id="hunter-count">7</b></div>
+        </div>
+      </div>
+
+      <div class="vitals">
+        <div class="vital-row">
+          <span class="vital-label">VITAL</span>
+          <div class="vital-track"><div id="health-fill" class="vital-fill health"></div></div>
+          <span id="health-num" class="vital-num">100</span>
+        </div>
+        <div class="vital-row">
+          <span class="vital-label">BREATH</span>
+          <div class="vital-track"><div id="stamina-fill" class="vital-fill stamina"></div></div>
+          <span id="stamina-num" class="vital-num">100</span>
+        </div>
+      </div>
+
+      <div id="context-prompt" class="context-prompt" aria-live="polite">
+        <span id="context-key">E</span><span id="context-text">TAKE KNIFE</span>
+      </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+      <button id="pause-btn" class="pause-btn" type="button" aria-label="Pause">
+        <span></span><span></span>
+      </button>
+
+      <!-- touch controls -->
+      <div id="touch-ui" class="touch-ui" aria-hidden="true">
+        <div id="joystick-zone" class="joystick-zone">
+          <div class="joystick-base">
+            <div class="joystick-ring"></div>
+            <div id="joystick-knob" class="joystick-knob"><span></span></div>
+          </div>
+          <span class="joystick-caption">MOVE</span>
+        </div>
+
+        <div class="action-cluster">
+          <button id="btn-crouch" class="action-btn small" type="button" aria-label="Toggle crouch"><span class="action-glyph">⌄</span><span class="action-text">CROUCH</span></button>
+          <button id="btn-throw" class="action-btn small" type="button" aria-label="Throw a distraction"><span class="action-glyph">◎</span><span class="action-text">THROW</span></button>
+          <button id="btn-interact" class="action-btn small" type="button" aria-label="Interact"><span class="action-glyph">✚</span><span class="action-text">TAKE</span></button>
+          <button id="btn-sprint" class="action-btn small" type="button" aria-label="Hold to sprint"><span class="action-glyph">»</span><span class="action-text">SPRINT</span></button>
+          <button id="btn-attack" class="action-btn attack" type="button" aria-label="Strike or execute"><span id="attack-glyph" class="action-glyph">╱</span><span id="attack-text" class="action-text">STRIKE</span></button>
+        </div>
+        <div class="touch-hint">HOLD SPRINT TO MOVE FAST · THEY HEAR YOU</div>
+      </div>
+
+      <div class="desktop-hints">
+        <span><b>WASD</b> MOVE</span><span><b>SHIFT</b> SPRINT</span><span><b>C</b> CROUCH</span><span><b>SPACE</b> STRIKE</span><span><b>E</b> USE</span><span><b>Q</b> THROW</span><span><b>ESC</b> PAUSE</span>
+      </div>
+
+      <div id="execution-banner" class="execution-banner" aria-hidden="true">
+        <div class="execution-line"></div>
+        <div class="execution-kicker">SILENT TAKEDOWN</div>
+        <div class="execution-title">EXECUTED</div>
+        <div id="execution-name" class="execution-name">VANCE</div>
+        <div class="execution-line"></div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── PAUSE ───────────────────────── -->
+    <section id="pause-screen" class="screen modal-screen hidden">
+      <div class="modal-panel">
+        <div class="modal-kicker">SYSTEM / PAUSED</div>
+        <h2 class="modal-title">HOLD YOUR<br /><span>BREATH.</span></h2>
+        <p class="modal-copy">The kill floor is still. Take a moment. Then finish what they started.</p>
+        <div class="pause-actions">
+          <button id="resume-btn" class="menu-btn primary" type="button">RESUME</button>
+          <button id="pause-tilt" class="menu-btn" type="button" aria-pressed="false">TILT CONTROLS / OFF</button>
+          <button id="pause-audio" class="menu-btn" type="button" aria-pressed="true">SOUND / ON</button>
+          <button id="restart-btn" class="menu-btn danger" type="button">RESTART MISSION</button>
+        </div>
+        <div class="pause-controls">
+          <span><b>TOUCH</b> left stick to move · right buttons to act</span>
+          <span><b>TILT</b> optional · iOS asks for motion permission</span>
+          <span><b>STEALTH</b> crouch in shadow · strike from behind</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── END SCREENS ───────────────────────── -->
+    <section id="end-screen" class="screen modal-screen hidden">
+      <div class="modal-panel end-panel">
+        <div id="end-kicker" class="modal-kicker">MISSION COMPLETE</div>
+        <h2 id="end-title" class="modal-title">THE NIGHT<br /><span>IS YOURS.</span></h2>
+        <p id="end-copy" class="modal-copy">The van pulls away. Somewhere behind you, the kill floor goes quiet.</p>
+        <div class="end-stats">
+          <div><span>TIME</span><b id="stat-time">00:00</b></div>
+          <div><span>HUNTERS DOWN</span><b id="stat-kills">0</b></div>
+          <div><span>SILENT TAKEDOWNS</span><b id="stat-executions">0</b></div>
+        </div>
+        <button id="again-btn" class="menu-btn primary" type="button">RUN IT AGAIN</button>
+      </div>
+    </section>
+
+    <div id="orientation-hint" class="orientation-hint">
+      <span class="rotate-glyph">↻</span>
+      <span>ROTATE FOR A WIDER VIEW</span>
+    </div>
+  </div>
+
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>
