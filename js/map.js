@@ -317,7 +317,7 @@ DECALS.push(
 // ── pickups ─────────────────────────────────────────────────────
 export const PICKUP_DEFS = [
   { id: 'knife', type: 'weapon', weapon: 'knife', x: 345, y: 1840, label: 'KNIFE' },
-  { id: 'bat', type: 'weapon', weapon: 'bat', x: 175, y: 1290, label: 'BAT' },
+  { id: 'bat', type: 'weapon', weapon: 'bat', x: 175, y: 1305, label: 'BAT' },
   { id: 'cleaver', type: 'weapon', weapon: 'cleaver', x: 1510, y: 1092, label: 'CLEAVER' },
   { id: 'medkit', type: 'medkit', x: 495, y: 1410, label: 'MEDKIT' }
 ];
@@ -325,9 +325,9 @@ export const PICKUP_DEFS = [
 // ── hunters ────────────────────────────────────────────────────
 export const ENEMY_DEFS = [
   {
-    id: 'vance', name: 'VANCE', lieutenant: true, x: 610, y: 380, angle: 2.8,
+    id: 'vance', name: 'VANCE', lieutenant: true, x: 610, y: 400, angle: 2.8,
     hp: 115, speed: 52, chaseSpeed: 124, viewDist: 375, fov: 1.28, damage: 21,
-    waypoints: [[610, 380], [400, 350], [150, 370], [380, 500], [700, 500]]
+    waypoints: [[610, 400], [400, 350], [150, 370], [380, 500], [700, 500]]
   },
   {
     id: 'cutter', name: 'CUTTER', lieutenant: true, x: 1500, y: 875, angle: 0,
@@ -337,22 +337,22 @@ export const ENEMY_DEFS = [
   {
     id: 'rook', name: 'ROOK', lieutenant: true, x: 2700, y: 420, angle: -1.6,
     hp: 120, speed: 55, chaseSpeed: 128, viewDist: 390, fov: 1.3, damage: 22,
-    waypoints: [[2700, 420], [2450, 300], [2850, 300], [2850, 570], [2450, 570]]
+    waypoints: [[2700, 420], [2460, 400], [2950, 300], [2950, 620], [2460, 620]]
   },
   {
-    id: 'dog', name: 'DOG', lieutenant: false, x: 300, y: 1360, angle: -1.6,
+    id: 'dog', name: 'DOG', lieutenant: false, x: 300, y: 1400, angle: -1.6,
     hp: 58, speed: 46, chaseSpeed: 112, viewDist: 320, fov: 1.24, damage: 13,
-    waypoints: [[300, 1360], [180, 1160], [480, 1160], [480, 1400], [180, 1400]]
+    waypoints: [[300, 1400], [180, 1160], [480, 1160], [480, 1400], [180, 1400]]
   },
   {
     id: 'mace', name: 'MACE', lieutenant: false, x: 300, y: 800, angle: 0,
     hp: 66, speed: 48, chaseSpeed: 110, viewDist: 330, fov: 1.2, damage: 15,
-    waypoints: [[300, 800], [150, 690], [520, 690], [520, 920], [150, 920]]
+    waypoints: [[300, 800], [150, 690], [520, 690], [450, 920], [250, 930]]
   },
   {
     id: 'tin', name: 'TIN', lieutenant: false, x: 2550, y: 1210, angle: -1.5,
     hp: 62, speed: 47, chaseSpeed: 113, viewDist: 335, fov: 1.26, damage: 14,
-    waypoints: [[2550, 1210], [2400, 930], [2850, 930], [2850, 1360], [2400, 1360]]
+    waypoints: [[2550, 1210], [2350, 1100], [2900, 960], [2900, 1370], [2350, 1400]]
   },
   {
     id: 'brick', name: 'BRICK', lieutenant: false, x: 2310, y: 1770, angle: 0,

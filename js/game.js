@@ -74,7 +74,12 @@ const audio = new AudioEngine();
 const motion = new MotionController();
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let soundOn = localStorage.getItem('hunted_sound') !== 'off';
+let soundOn = true;
+try {
+  soundOn = localStorage.getItem('hunted_sound') !== 'off';
+} catch {
+  // Storage can be unavailable in private or sandboxed browsing contexts.
+}
 audio.enabled = soundOn;
 let tiltBusy = false;
 let input;
@@ -205,6 +210,25 @@ function moveEntity(ent, dx, dy, r) {
   }
 }
 
+// Push an actor out of a solid it spawned or got shoved into. Without this,
+// an overlapping actor can reject every move direction and freeze in place.
+function depenetrate(ent, r) {
+  if (!collides(ent.x, ent.y, r)) return false;
+  for (let step = 2; step <= 80; step += 2) {
+    for (let i = 0; i < 16; i++) {
+      const a = i * TAU / 16;
+      const nx = ent.x + Math.cos(a) * step;
+      const ny = ent.y + Math.sin(a) * step;
+      if (!collides(nx, ny, r)) {
+        ent.x = nx;
+        ent.y = ny;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function clampCamera() {
   const halfW = innerWidth / (2 * state.zoom);
   const halfH = innerHeight / (2 * state.zoom);
@@ -259,6 +283,8 @@ function resetWorld(attract) {
     idleLook: Math.random() * 10,
     stuckTimer: 0
   }));
+  depenetrate(state.player, state.player.r);
+  for (const e of state.enemies) depenetrate(e, e.r);
   state.pickups = PICKUP_DEFS.map((p) => ({ ...p, taken: false }));
   state.particles = [];
   state.noiseRings = [];
@@ -317,6 +343,7 @@ function togglePause(force) {
   } else if (state.mode === 'paused' && force !== true) {
     state.mode = 'playing';
     input.setEnabled(true);
+    input.clear();
     dom.pause.classList.add('hidden');
     state.lastFrame = performance.now();
     audio.ui();
@@ -388,6 +415,7 @@ function updateAttract(dt) {
 function updatePlayer(dt) {
   const p = state.player;
   if (!p) return;
+  if (collides(p.x, p.y, p.r)) depenetrate(p, p.r);
   p.attackCooldown = Math.max(0, p.attackCooldown - dt);
   p.throwCooldown = Math.max(0, p.throwCooldown - dt);
   p.swing = Math.max(0, p.swing - dt * 4.2);
@@ -447,6 +475,7 @@ function findAttackTarget() {
     if (!e.alive) continue;
     const d = dist(p.x, p.y, e.x, e.y);
     if (d > bestD) continue;
+    if (!hasLOS(p.x, p.y, e.x, e.y)) continue;
     const diff = Math.abs(normAngle(angleTo(p.x, p.y, e.x, e.y) - p.angle));
     if (d > 30 && diff > 1.42) continue;
     best = e;
@@ -786,10 +815,12 @@ function canSeePlayer(e) {
   if (p.sprinting) range *= 1.14;
   if (e.state === 'chase') range *= 1.2;
   if (d > range) return false;
-  if (d > 68) {
-    const dot = (Math.cos(e.angle) * (p.x - e.x) + Math.sin(e.angle) * (p.y - e.y)) / Math.max(1, d);
-    if (dot < Math.cos(e.fov / 2)) return false;
-  }
+  // Always respect the facing cone. A hunter does not magically see a
+  // crouched player standing directly behind them; that is the whole point
+  // of the stealth execution window.
+  const fov = e.state === 'chase' ? Math.min(Math.PI, e.fov * 1.35) : e.fov;
+  const dot = (Math.cos(e.angle) * (p.x - e.x) + Math.sin(e.angle) * (p.y - e.y)) / Math.max(1, d);
+  if (dot < Math.cos(fov / 2)) return false;
   return hasLOS(e.x, e.y, p.x, p.y);
 }
 
@@ -879,6 +910,7 @@ function updatePatrol(e, dt, sees) {
 
 function updateEnemyAI(e, dt, attract) {
   if (!e.alive) return;
+  if (collides(e.x, e.y, e.r || 15)) depenetrate(e, e.r || 15);
   e.attackCooldown = Math.max(0, e.attackCooldown - dt);
   e.hitFlash = Math.max(0, e.hitFlash - dt);
   e.swing = Math.max(0, e.swing - dt * 4);
@@ -1156,7 +1188,11 @@ function toggleAudio() {
   audio.init();
   soundOn = !soundOn;
   audio.setEnabled(soundOn);
-  localStorage.setItem('hunted_sound', soundOn ? 'on' : 'off');
+  try {
+    localStorage.setItem('hunted_sound', soundOn ? 'on' : 'off');
+  } catch {
+    // Ignore storage failures; the session still remembers the setting.
+  }
   updateAudioUI();
   if (state.mode === 'playing') showToast(soundOn ? 'SOUND ON' : 'SOUND OFF', 1200);
 }

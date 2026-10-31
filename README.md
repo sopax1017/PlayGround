@@ -42,7 +42,7 @@ and grant motion permission when prompted; the button changes to **TILT ON**.
 
 ### Features
 
-- Procedural top-down kill-floor map with patrol routes, cover, props and lamps.
+- Detailed top-down kill-floor map with patrol routes, cover, props and lamps.
 - Line-of-sight vision cones, hearing, suspicion, search and chase AI.
 - Shadow concealment driven by the same light map used for rendering.
 - Stealth executions from behind, melee weapons, medkits and thrown distractions.

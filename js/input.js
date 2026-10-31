@@ -12,6 +12,7 @@ export class InputController {
     this.interactQueued = false;
     this.throwQueued = false;
     this.stickPointer = null;
+    this.sprintPointer = null;
     this.enabled = false;
     this.isTouch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0 || innerWidth <= 820;
     document.body.classList.toggle('touch', this.isTouch);
@@ -33,6 +34,7 @@ export class InputController {
     this.interactQueued = false;
     this.throwQueued = false;
     this.stickPointer = null;
+    this.sprintPointer = null;
     this.resetStickVisual();
     document.getElementById('btn-sprint')?.classList.remove('pressed');
   }
@@ -171,11 +173,14 @@ export class InputController {
       sprintBtn.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        this.sprintPointer = e.pointerId;
         this.sprintHeld = true;
         sprintBtn.classList.add('pressed');
       }, { passive: false });
       const endSprint = (e) => {
+        if (e && e.pointerId != null && this.sprintPointer != null && e.pointerId !== this.sprintPointer) return;
         if (e) e.preventDefault();
+        this.sprintPointer = null;
         this.sprintHeld = false;
         sprintBtn.classList.remove('pressed');
       };
@@ -184,8 +189,11 @@ export class InputController {
       sprintBtn.addEventListener('pointerleave', endSprint);
     }
 
-    document.addEventListener('pointerup', () => {
-      if (this.sprintHeld) {
+    document.addEventListener('pointerup', (e) => {
+      // Only release sprint for the finger that pressed it; lifting the
+      // movement thumb must not cancel a held sprint.
+      if (this.sprintHeld && (this.sprintPointer == null || e.pointerId === this.sprintPointer)) {
+        this.sprintPointer = null;
         this.sprintHeld = false;
         document.getElementById('btn-sprint')?.classList.remove('pressed');
       }
